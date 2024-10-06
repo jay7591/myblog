@@ -1,0 +1,15 @@
+<p>Today I explored data augmentation techniques in deep learning, particularly for image classification tasks. Data augmentation is a powerful strategy to artificially expand the size of a training dataset by creating modified versions of existing data.
+Key takeaways:</p>
+<p>Helps prevent overfitting by increasing dataset diversity
+Particularly useful when working with limited data
+Common techniques for images: rotation, flipping, scaling, cropping, color jittering</p>
+<p>Example using Keras:
+pythonCopyfrom keras.preprocessing.image import ImageDataGenerator</p>
+<p>datagen = ImageDataGenerator(
+    rotation_range=20,
+    width_shift_range=0.2,
+    height_shift_range=0.2,
+    horizontal_flip=True)</p>
+<h1>Fit the generator on the data</h1>
+<p>datagen.fit(X_train)
+This technique has significantly improved the performance of my image classification models, especially on small datasets.</p>
