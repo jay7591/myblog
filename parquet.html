@@ -1,0 +1,57 @@
+<h1>Parquet File Format Overview</h1>
+<h2>Key Features</h2>
+<ul>
+<li><strong>Columnar, On-Disk Storage</strong>: Parquet uses a columnar layout for data storage, meaning data is stored by columns rather than rows. This is especially efficient when querying a subset of columns.</li>
+<li><strong>Optimized for Vectorized Operations</strong>: The columnar format allows for faster vectorized operations (e.g., aggregations), as operations are performed on entire columns at once.</li>
+<li><strong>Efficient Encodings &amp; Compression</strong>: Parquet supports several encoding schemes and compression algorithms, which significantly reduce storage footprint.</li>
+<li><strong>Predicate Pushdown</strong>: Parquet allows for predicate pushdown, which pushes filtering operations to the storage level, minimizing the amount of data read during queries.</li>
+<li>Example: A query like <code>age &gt; 8</code> can be processed at the I/O level, fetching only the necessary data.</li>
+</ul>
+<hr />
+<h2>Anatomy of a Parquet File</h2>
+<h3>Row Groups &amp; Footer:</h3>
+<ul>
+<li>The file is split into <strong>row groups</strong>, followed by a <strong>footer</strong>.</li>
+<li><strong>Row Groups</strong>: Logical horizontal partitions of the data. Each row group contains all the columns for a specific chunk of rows.</li>
+<li><strong>Footer</strong>: The footer contains important metadata such as the schema, row group offsets, and statistics. It is written after the data is completely written.</li>
+<li>Statistics (like min/max values and null counts) are stored per row group and per page and are used for optimizations like predicate pushdown.</li>
+</ul>
+<h3>Column Storage:</h3>
+<ul>
+<li>Each row group stores data for columns in <strong>column chunks</strong>. Columns are stored one after the other, and each column chunk is split into <strong>data pages</strong>.</li>
+<li>Data pages are where encoding and compression are applied.</li>
+<li><strong>Statistics</strong> about each column (min, max, etc.) are stored in both the data pages and row groups for use in optimizations like predicate pushdown.</li>
+</ul>
+<hr />
+<h2>Tuning Parquet for Performance</h2>
+<p>You can optimize Parquet file performance by tuning several parameters:</p>
+<ul>
+<li><strong>Compression Algorithm</strong>: The choice of compression algorithm impacts both the file size and the speed of read/write operations. Supported algorithms include:</li>
+<li><strong>Brotli</strong>: Provides high compression ratios but is more CPU-intensive.</li>
+<li><strong>Zstandard</strong>: Strikes a balance between compression speed and ratio.</li>
+<li>
+<p><strong>Gzip</strong>: Offers good compression but is slower than Brotli and Zstandard.</p>
+</li>
+<li>
+<p><strong>Compression Level</strong>: Each algorithm has different levels of compression (e.g., <code>level=1</code> is fast but offers less compression, whereas <code>level=9</code> provides better compression but at a higher CPU cost).</p>
+</li>
+<li>
+<p><strong>Row Group Size</strong>: Determines the number of rows in a row group. Larger row groups improve read performance when reading the entire dataset but might increase memory usage. Smaller row groups are better for selective queries.</p>
+</li>
+<li>
+<p>Rule of Thumb: Use larger row groups when most of the dataset is queried together, and smaller ones for workloads where only subsets are queried.</p>
+</li>
+<li>
+<p><strong>Encodings</strong>: Parquet supports several encoding schemes to further reduce storage size:</p>
+</li>
+<li><strong>Run Length Encoding (RLE)</strong>: Useful for columns with repeated values, reducing storage for repeating patterns.</li>
+<li><strong>Delta Encoding</strong>: Stores differences between consecutive values (useful for time-series data).</li>
+<li><strong>Byte Stream Split Encoding</strong>: Efficient for encoding floating-point values.</li>
+</ul>
+<hr />
+<h2>Compression Tuning</h2>
+<p>To balance the trade-off between compression efficiency and performance (CPU and I/O), you may use a <strong>cost function</strong> that considers:
+  - Compression ratio (how much storage is saved).
+  - CPU time (how much CPU is used to compress/decompress).
+  - I/O time (how much time is spent reading/writing compressed data).</p>
+<p>Choosing the right compression algorithm, level, and row group size depends on the workload and whether you prioritize storage savings, read performance, or CPU efficiency.</p>
